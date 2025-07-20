@@ -9,7 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroui/button": "^2.2.23",
+    "@heroui/react": "^2.8.1",
+    "@heroui/system": "^2.4.19",
+    "@heroui/theme": "^2.4.19",
     "@reduxjs/toolkit": "^2.8.2",
+    "framer-motion": "^12.23.6",
     "next": "15.4.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
