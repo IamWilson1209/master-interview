@@ -1,9 +1,8 @@
 import NextAuth, { type DefaultSession } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import GitHubProvider from "next-auth/providers/github"
-import type { JWT } from "next-auth/jwt"
+import "next-auth/jwt"
 
-// 擴展 Session 和 JWT 的型別
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
@@ -52,7 +51,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session
     },
-    // ...existing code...
     async signIn({ user, account }) {
       if (process.env.MONGODB_URI && account && user.email) {
         try {
@@ -63,11 +61,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const db = client.db()
           const users = db.collection('users')
 
-          // 首先根據 email 查找使用者
           const existingUser = await users.findOne({ email: user.email })
 
           if (!existingUser) {
-            // 如果使用者不存在，建立新使用者
             await users.insertOne({
               name: user.name,
               email: user.email,
@@ -82,7 +78,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               lastLoginAt: new Date()
             })
           } else {
-            // 檢查此提供者是否已與此使用者關聯
             const hasProvider = existingUser.providers?.some(
               (p: { provider: string; providerAccountId: string }) =>
                 p.provider === account.provider &&
@@ -90,8 +85,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             );
 
             if (!hasProvider) {
-              // 如果是新的提供者，將其加入到使用者的提供者列表中
-              // 使用型別斷言來解決 TypeScript 型別檢查的問題
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const updateDoc: any = {
                 $push: {
@@ -103,13 +96,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 $set: { lastLoginAt: new Date() }
               };
 
-              // 執行更新操作
               await users.updateOne(
                 { email: user.email },
                 updateDoc
               );
             } else {
-              // 如果使用者存在且已有此提供者，只更新最後登入時間
               await users.updateOne(
                 { email: user.email },
                 { $set: { lastLoginAt: new Date() } }
